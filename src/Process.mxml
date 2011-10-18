@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="onComplete()">
+    <s:layout><s:HorizontalLayout /></s:layout>
+    <fx:Script><![CDATA[
+        import com.adobe.serialization.json.JSON;
+
+        import mx.collections.ArrayCollection;
+        import mx.utils.ColorUtil;
+        import mx.utils.HSBColor;
+
+        import spark.events.IndexChangeEvent;
+
+        [Embed(source="/dahlias.json",mimeType="application/octet-stream")]
+        private var Dahlias:Class;
+
+        [Bindable] private var _dahlias:ArrayCollection;
+
+        private var _colors:Array = new Array(0xFFFFFF);
+        private var _hues:Array = new Array(360);
+
+        private function onComplete():void {
+            var dahlias:String = new Dahlias();
+            var dahliasArray:Array = JSON.decode(dahlias);
+            _dahlias = new ArrayCollection(dahliasArray);
+
+        }
+
+        private function onChange(event:IndexChangeEvent):void {
+            loader.load('images/'+list.selectedItem);
+        }
+
+        private function onGoClick():void {
+            var bitmapData:BitmapData = new BitmapData(loader.width,  loader.height,  false);
+            bitmapData.draw(loader);
+            //_colors = new Object();
+            //_hues = new Array(360);
+            for (var x:int = 0; x < bitmapData.width; x++)
+            {
+                for (var y:int = 0; y < bitmapData.height; y++)
+                {
+                    var pixel:uint = bitmapData.getPixel(x,y);
+                    if(!_colors[pixel])
+                    {
+                        _colors[pixel] = 0;
+                    }
+                    _colors[pixel]++;
+                }
+            }
+            output.text = JSON.encode(_hues);
+            drawHues(_hues);
+        }
+
+        private function drawHues(hues:Array):void
+        {
+            chart.graphics.clear();
+            chart.graphics.beginFill(0xFFFFFF,1);
+            chart.graphics.drawRect(0,0,chart.width,chart.height);
+            for (var i:int = 0;i <= _colors.length; i++)
+            {
+                drawColor(_colors[i], _colors[i], i);
+
+            }
+        }
+
+        private function drawColor(color:uint, y:int, width:Number):void
+        {
+            chart.graphics.lineStyle(1, color);
+            chart.graphics.moveTo(0, y);
+            chart.graphics.lineTo(width, width);
+        }
+        ]]></fx:Script>
+    <s:List id="list" dataProvider="{_dahlias}" width="200" height="100%" change="onChange(event)" />
+    <s:VGroup width="100%" height="100%">
+        <mx:SWFLoader id="loader" />
+        <s:Button label="GO!" click="onGoClick()" />
+        <s:Graphic id="chart" width="100%" height="{0xFFFFFF/10000}" />
+        <s:TextArea id="output" width="500" height="500" />
+    </s:VGroup>
+
+</s:Application>

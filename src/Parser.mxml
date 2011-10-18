@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="onComplete()">
+    <s:layout><s:VerticalLayout /></s:layout>
+    <fx:Script><![CDATA[
+        import com.adobe.serialization.json.JSON;
+
+        import mx.utils.StringUtil;
+
+        [Embed(source="/dahlias2",mimeType="application/octet-stream")]
+        private var Dahlias:Class;
+
+
+        private function onComplete():void {
+            var dahlias:String = new Dahlias();
+            var pattern:RegExp = new RegExp("(./files/[A-Z0-9_-]+.JPG)", "i");
+            var result:Array = pattern.exec(dahlias);
+            var results:Array = [];
+            results.push(result[0]);
+            output.text += result[0] + "\n";
+            dahlias = dahlias.replace(result[0], '');
+            while (result != null && results.length < 1000)
+            {
+                //trace(result[0]);
+                result = pattern.exec(dahlias);
+                if(result != null)
+                {
+                    results.push(result[0]);
+                    //output.text += result[0] + "\n";
+                    dahlias = dahlias.replace(result[0], '');
+                }
+            }
+            var json:String = JSON.encode(results);
+            lengthOutput.text = results.length.toString();
+            output.text = json;
+        }
+        ]]></fx:Script>
+    <s:TextInput id="lengthOutput" />
+    <s:TextArea id="output" width="100%" height="100%"  />
+</s:Application>

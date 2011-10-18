@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="onComplete()">
+    <mx:Script><![CDATA[
+        [Embed(source="/dahlias2",mimeType="application/octet-stream")]
+        private var Dahlias:Class;
+</mx:Application>
+private function onComplete():void {
+
+        }
