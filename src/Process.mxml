@@ -8,6 +8,7 @@
         import mx.collections.ArrayCollection;
         import mx.utils.ColorUtil;
         import mx.utils.HSBColor;
+        import mx.utils.HSBColor;
 
         import spark.events.IndexChangeEvent;
 
@@ -16,14 +17,25 @@
 
         [Bindable] private var _dahlias:ArrayCollection;
 
-        private var _colors:Array = new Array(0xFFFFFF);
         private var _hues:Array = new Array(360);
 
         private function onComplete():void {
             var dahlias:String = new Dahlias();
             var dahliasArray:Array = JSON.decode(dahlias);
             _dahlias = new ArrayCollection(dahliasArray);
+            initHues();
+        }
 
+        private function initHues():void
+        {
+            for(var h:int = 0;h < _hues.length;h++)
+            {
+                _hues[h] = new Array(101);
+                for(var b:int = 0;b < _hues[h].length; b++)
+                {
+                    _hues[h][b] = 0;
+                }
+            }
         }
 
         private function onChange(event:IndexChangeEvent):void {
@@ -40,41 +52,54 @@
                 for (var y:int = 0; y < bitmapData.height; y++)
                 {
                     var pixel:uint = bitmapData.getPixel(x,y);
-                    if(!_colors[pixel])
-                    {
-                        _colors[pixel] = 0;
-                    }
-                    _colors[pixel]++;
+                    var hsb:HSBColor = HSBColor.convertRGBtoHSB(pixel);
+
+                    var bucketedHue:int = Math.floor(hsb.hue);
+                    var bucketedBrightness:int = Math.floor(hsb.brightness*100);
+                    _hues[bucketedHue][bucketedBrightness]++;
                 }
             }
-            output.text = JSON.encode(_hues);
+            var json:String = JSON.encode(_hues);
+            output.text = json;
             drawHues(_hues);
         }
 
         private function drawHues(hues:Array):void
         {
+
             chart.graphics.clear();
             chart.graphics.beginFill(0xFFFFFF,1);
             chart.graphics.drawRect(0,0,chart.width,chart.height);
-            for (var i:int = 0;i <= _colors.length; i++)
+            for (var h:int = 0;h < _hues.length; h++)
             {
-                drawColor(_colors[i], _colors[i], i);
+                var startX:int = 0;
+                for(var b:int = 50;b < _hues[h].length; b++)
+                {
+                    var amount:int = _hues[h][b];
+                    if(amount > 0)
+                    {
+                        var pixel:uint = HSBColor.convertHSBtoRGB(h, 1, b/100);
+                        //chart.graphics.
+                        //chart.graphics.lineStyle(1, pixel, 1, false);
+                        chart.graphics.beginFill(pixel,1);
+                        //chart.graphics.moveTo(startX, h);
+                        //chart.graphics.lineTo(startX+amount, h);
+
+                        chart.graphics.drawRect(startX,h,startX+amount,1);
+                        chart.graphics.endFill();
+                        startX+=amount;
+                    }
+                }
 
             }
         }
 
-        private function drawColor(color:uint, y:int, width:Number):void
-        {
-            chart.graphics.lineStyle(1, color);
-            chart.graphics.moveTo(0, y);
-            chart.graphics.lineTo(width, width);
-        }
         ]]></fx:Script>
     <s:List id="list" dataProvider="{_dahlias}" width="200" height="100%" change="onChange(event)" />
     <s:VGroup width="100%" height="100%">
         <mx:SWFLoader id="loader" />
         <s:Button label="GO!" click="onGoClick()" />
-        <s:Graphic id="chart" width="100%" height="{0xFFFFFF/10000}" />
+        <s:Graphic id="chart" width="100%" height="360" />
         <s:TextArea id="output" width="500" height="500" />
     </s:VGroup>
 
