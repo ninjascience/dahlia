@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bar Chart</title>
+    <script type="text/javascript" src="mbostock-d3-7d6080d/d3.js"></script> 
+    <script type="text/javascript" src="mbostock-d3-7d6080d/d3.layout.js"></script>    <style type="text/css">
+
+body {
+  font: 10px sans-serif;
+}
+
+svg {
+  shape-rendering: crispEdges;
+}
+
+    </style>
+  </head>
+  <body bgcolor="#FFFFFF">
+    <div class="gallery" id="chart"></div>
+
+    <script type="text/javascript">
+var w=360*3,
+	h=500,
+	x = d3.scale.linear().range([0,w]),
+	y = d3.scale.linear().range([0,h - 40]);	
+var svg = d3.select("#chart")
+			.append("svg:svg")			
+			.attr("height", h)
+    		.attr("width", w + 40)
+    		.attr("height", h + 20)
+  			.append("svg:g")
+  			.attr("transform","translate(" + x(1) + "," + (h-20) + ")scale(-1,-1)");
+    		
+var body = svg.append("svg:g")
+	.attr("transform", "translate(0,0)");
+	
+d3.json("hues.json", function(data) {
+	var stackData = d3.layout.stack()(data);
+
+        var b0 = 0,
+            b1 = d3.max(data, function(h){
+                    return d3.sum(h, function(b){
+                        return b;
+                    });
+                }),
+            h0 = 0,
+            h1 = 359;
+            
+	x.domain([0, 360]);
+	y.domain([0, b1]);
+	
+	/*rules = rules.selectAll(".rule")
+		.data(y.ticks(10))
+		.enter().append("svg:g")
+		.attr("class", "rule")
+		.attr("transform", function(d){ return "translate(0,"+y(d) + ")"; });
+		
+	rules.append("svg:line")
+		.attr("x2", w);
+	
+	rules.append("svg:line")
+		.attr("x", 6)
+		.attr("dy", ".35em")
+		.attr("transform", "rotate(180)")
+		.text(function(d){return Math.round(d / 1e6) + "M"; });*/
+	var hue = 0;
+	var bStart = 0;	
+	var hues = body.selectAll("g")
+		.data(data)
+		.enter()
+		.append("svg:g")
+		.attr("transform", function(d, i){
+			//hue = i;
+			bStart = 0;
+			return "translate(" + x(359-i) + ",0)";
+		}).selectAll("rect")
+		.data(function(d, i){
+			bStart = 0;
+			return d;
+		})
+		.enter().append("svg:rect")
+		.attr("x", 0)
+		.attr("y", function(d,i){
+			var yPx = y(d);
+			yVal = bStart;
+			bStart += y(d);
+			
+			if(i == 100)
+			{
+				bStart = 0;
+				
+			}
+			//console.info(d, bStart);
+			return yVal;
+		})
+		.attr("width", 3)
+		.attr("height", function(d){
+			var yPx = y(d);
+			return yPx;
+		})
+		.attr("fill", function(d,i){
+			if(i == 100)
+			{
+				hue+=1;
+			}
+			return d3.hsl(hue, 1, i/100);
+		});
+
+	
+	/*hues.selectAll("rect")
+		.data(d3.range(100))
+		.enter().append("svg:rect")
+		.attr("x", 1)
+		.attr("width", 2)
+		.attr("height", 100)
+		.attr("fill", 0);*/
+		
+	
+	
+	
+	//redraw();
+		
+	
+});
+    </script>  </body>
+</html>
